@@ -97,20 +97,17 @@ Lembre-se sempre:
 - Utilize sempre uma passphrase forte ao gerar novas chaves.
 - Este script foi criado para facilitar a gestão, mas a responsabilidade sobre a segurança das credenciais é do utilizador.
 
-## ⚠️ Disclaimer
+## ⚠️ Aviso Legal
 
 > [!WARNING]
-> Este software é fornecido "tal como está". Certifique-se sempre de ter permissão explícita antes de executar o script. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto nos dados causados ​​por esta ferramenta.
+> Este software é fornecido "como está". Certifique-se sempre de testar primeiro em um ambiente de desenvolvimento. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto em dados causado por esta ferramenta.
 
 ## 📚 Tutorial Detalhado
 
-Para um guia completo, passo a passo, sobre como importar os arquivos gerados para o Thunderbird e solucionar problemas comuns de migração, confira meu artigo completo:
+Para um guia completo, passo a passo, confira meu artigo completo:
 
 👉 [**Easy Manager your SSH Keys**](https://perciocastelo.com.br/blog/easy-manager-your-ssh-keys.html)
 
 ## Licença 📄
 
 Este projeto está licenciado sob a **GNU General Public License v3.0**. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-# License 📄
-This project is licensed under the GNU General Public License v2.0
