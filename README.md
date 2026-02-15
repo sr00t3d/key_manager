@@ -1,6 +1,6 @@
 # Key Manager 🔑
 
-Readme: [Português](README.ptbr.md)
+Readme: [Português](README-ptbr.md)
 
 <img src="https://github.com/user-attachments/assets/14bb0446-a6f2-49d4-9e4a-ed384365ab20" width="700">
 
