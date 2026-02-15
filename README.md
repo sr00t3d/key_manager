@@ -1,6 +1,6 @@
 # Key Manager 🔑
 
-Readme: [Português](README.pt-br.md)
+Readme: [Português](README.ptbr.md)
 
 <img src="https://github.com/user-attachments/assets/14bb0446-a6f2-49d4-9e4a-ed384365ab20" width="700">
 
@@ -100,11 +100,11 @@ Always remember:
 ## ⚠️ Legal Notice
 
 > [!WARNING]
-> This software is provided "as is". Always ensure you have explicit permission before running the script. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
+> This software is provided "as is". Always make sure to test first in a development environment. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
 
 ## 📚 Detailed Tutorial
 
-For a complete, step-by-step guide on how to import generated files into Thunderbird and troubleshoot common migration issues, check out my full article:
+For a complete, step-by-step guide, check out my full article:
 
 👉 [**Easily manage your SSH keys**](https://perciocastelo.com.br/blog/easy-manager-your-ssh-keys.html)
 
