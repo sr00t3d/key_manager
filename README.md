@@ -2,10 +2,10 @@
 
 Readme: [Português](README-ptbr.md)
 
-<img src="https://github.com/user-attachments/assets/14bb0446-a6f2-49d4-9e4a-ed384365ab20" width="700">
-
 ![License](https://img.shields.io/github/license/sr00t3d/key_manager)
 ![Shell Script](https://img.shields.io/badge/shell-script-green)
+
+<img src="key-manager-cover.webp" width="700">
 
 Key Manager is a utility tool developed in Shell Script to simplify the management of SSH keys and credentials in Linux environments. It was designed for system administrators and programmers who need a fast and secure way to organize, execute, or deploy access keys.
 
