@@ -4,6 +4,8 @@ Readme: [EN](README.md)
 
 ![Shell Script](https://img.shields.io/badge/shell-script-green) ![Security Audited](https://img.shields.io/badge/security-audited-blue)
 
+<img src="key-manager-cover.webp" width="700">
+
 O **Key Manager** é uma ferramenta utilitária avançada desenvolvida em Shell Script para simplificar, automatizar e auditar a gestão de chaves SSH em ambientes Linux. 
 
 Diferente de scripts de deploy comuns, esta ferramenta foi desenhada com foco em **Cybersecurity** e **Rastreabilidade**, resolvendo o "problema do ovo e da galinha" (precisar de senha para configurar o acesso sem senha) de forma segura, silenciosa e rastreável.
