@@ -1,106 +1,122 @@
-# Key Manager 🔑
+# Key Manager 🔑 - Enterprise Audit Edition
 
-Readme: [Português](README-ptbr.md)
+Readme: [BR](README.md)
 
-![License](https://img.shields.io/github/license/sr00t3d/key_manager)
-![Shell Script](https://img.shields.io/badge/shell-script-green)
+![Shell Script](https://img.shields.io/badge/shell-script-green) ![Security Audited](https://img.shields.io/badge/security-audited-blue)
 
-<img src="key-manager-cover.webp" width="700">
+**Key Manager** is an advanced utility tool developed in Shell Script to simplify, automate, and audit SSH key management in Linux environments.
 
-Key Manager is a utility tool developed in Shell Script to simplify the management of SSH keys and credentials in Linux environments. It was designed for system administrators and programmers who need a fast and secure way to organize, execute, or deploy access keys.
+Unlike common deployment scripts, this tool was designed with a focus on **Cybersecurity** and **Traceability**, solving the "chicken and egg problem" (needing a password to configure passwordless access) in a secure, silent, and traceable way.
 
-## ✨ Features
+---
 
-- **SSH Key Management**: Addition, removal, and listing of public/private keys.
-- **Automation**: Quick configuration of keys on remote servers.
-- **Security**: File permission verification (chmod 600/700) to ensure key integrity.
-- **Backup**: Built-in functions to save existing keys before any changes.
-- **Intuitive Interface**: Interactive terminal menus to facilitate navigation.
+## ✨ Advanced Features
+
+- 🧠 **Smart Connection:** Tests key-based connectivity before attempting any changes, preventing duplication in `authorized_keys`.
+- 🚀 **Automatic Deploy (`sshpass`):** Injects the public key into the remote server without interactive prompts, ideal for automation and pipelines.
+- 🛡️ **Full Traceability:** Adds `Hostname`, `Source IP`, and `Timestamp` as a comment to the public key installed on the destination.
+- 📋 **Remote Audit Log:** Centrally records all deployment actions and access attempts in the `/var/log/key.audit` file on the remote server.
+- 🧹 **Force Update Mode:** Allows purging `authorized_keys` and `known_hosts` to force a clean renewal of compromised or outdated access.
+- 🛡️ **Anti-Junk Protection:** Uses `trap` to ensure that passwords in memory and temporary files `/tmp/deploy_*.pub` are destroyed even if the script is abruptly aborted.
+
+---
 
 ## 📋 Prerequisites
 
-- Linux-based Operating System (Ubuntu, Debian, CentOS, etc.).
-- `bash` (version 4.0 or higher).
-- `openssh-client` installed and configured.
-- `ssh-keygen`, `ssh-copy-id`, `sshpass`, `ssh-keyscan`
+For the script to work correctly, your local machine (client) must have the following packages installed:
+
+```bash
+# On Debian/Ubuntu-based systems:
+sudo apt update && sudo apt install sshpass openssh-client curl gawk -y
+```
+> Note for the Destination Server:
+> For the first deployment, the remote server must temporarily allow password authentication (PasswordAuthentication yes in /etc/ssh/sshd_config). After deployment, it is recommended to disable this option.
 
 ## 🚀 Installation
 
-To start using Key Manager, clone the repository and assign execution permissions to the main script:
-
-1. Clone the repository
-```bash
-git clone https://github.com/sr00t3d/key_manager.git
-```
-
-2. Enter the folder
+1. **Download the file on the server:**
 
 ```bash
-cd key_manager
+curl -O https://raw.githubusercontent.com/sr00t3d/key_manager/refs/heads/main/key_manager.sh
 ```
 
-3. Grant execution permission
+2. **Grant execution permission:**
 
 ```bash
 chmod +x key_manager.sh
 ```
 
-## 🛠️ How to Use
-
-Run the script directly from the terminal:
+3. **Run the script:**
 
 ```bash
 ./key_manager.sh
 ```
-*Tip: Move the file to `/usr/local/bin` to make usage easier*
 
-## Common Commands (Examples)
+## 🛠️ How to Use
 
-```bash
-./key_manager.sh server_ip [-u] [-p password] [-P port] [-c] [-n key_name] [-q]
-```
-
-- `--add`:            Adds a new key to the SSH agent.
-- `--list`:           Lists all keys managed by the system.
-- `--deploy`:         Copies the public key to a remote server (automatic authorized_keys adjustment).
-- `-server_ip`:       Destination server IP address (IPv4/IPv6)
-- `-u`:               Update existing SSH key
-- `-p` password:      Root user password for key copying
-- `-P` port:          Custom SSH port (default: 22)
-- `-c`:               Force copying the SSH key to the server
-- `-n` key_name:      Custom SSH key file name (default: id_rsa)
-- `-q`:               Silent mode for automation
-- `-h`:               Show help message
-
-## 🌟 Examples
-
-**Usage with IPv4**
+Basic Syntax:
 
 ```bash
-./key_manager.sh 192.168.1.100
+key-manager <SERVER_IP> [options]
 ```
-**Using custom port and key**
+```bash
+Flag        Argument        Description
+-p          <password>      Remote user password for automatic deployment.
+-P          <port>          Custom SSH port (Default: 22).
+-u          <user>          Remote server user (Default: root).
+-n          <name>          Local key filename (Default: id_rsa).
+-c          <text>          Replaces automatic traceability with a custom comment.
+-k          None            Force Update: Cleans old records and forces key reinstallation.
+-h          None            Displays the help menu.
+```
+
+## 🌟 Practical Usage Examples
+
+1. First Access (Automatic Deploy) Generates the key (if it does not exist), adds the trusted host, installs the key, and logs on the server:
 
 ```bash
-./key_manager.sh 192.168.1.100 -P 2222 -n custom_key
+key-manager 192.168.1.100 -p "my_secret_password"
 ```
-**Force password update**
+
+2. Daily Use (Quick Connection) Detects that the key already exists and immediately opens the terminal:
 
 ```bash
-./key_manager.sh 192.168.1.100 -u -p mypassword -c
+key-manager 192.168.1.100
 ```
 
-## 🛡️ Security
+3. Update Compromised Key / Machine Replacement The -k parameter scans the old authorized_keys and installs the new key cleanly:
 
-Always remember:
-- **Never share your private keys**.
-- Always use a strong passphrase when generating new keys.
-- This script was created to facilitate management, but responsibility for credential security lies with the user.
+```bash
+key-manager 192.168.1.100 -p "my_secret_password" -k
+```
+
+4. Deploy for Specific User with Custom Name
+
+```bash
+key-manager 10.0.0.5 -u ubuntu -p "password" -c "Temporary_Dev_Access"
+```
+
+## 🕵️‍♂️ Audit System (Compliance)
+
+Whenever an action is executed, the script writes a log on the destination server at /var/log/key.audit. This is essential to maintain compliance and to know who accessed from where.
+
+Example output on the remote server:
+
+```bash
+[28/02/2026 14:30:12] ACTION: KEY_DEPLOYED | FROM: 177.10.x.x | HOST: sr00t3d-pc
+[28/02/2026 15:45:00] ACTION: LOGIN_SUCCESS | FROM: 177.10.x.x | HOST: sr00t3d-pc
+```
+
+*Additionally, running cat ~/.ssh/authorized_keys will show the exact origin watermark at the end of the public key string.*
+
+## ⚠️ Security Notice
+
+This script handles credentials. Never hardcode passwords in automated scripts. For greater security, avoid leaving passwords in terminal history (on standard Linux distributions, starting a command with a blank space  ./key-manager... prevents it from being saved in ~/.bash_history).
 
 ## ⚠️ Legal Notice
 
 > [!WARNING]
-> This software is provided "as is". Always make sure to test first in a development environment. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
+> This software is provided "as is." Always make sure you have explicit permission before executing it. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
 
 ## 📚 Detailed Tutorial
 
@@ -111,6 +127,3 @@ For a complete, step-by-step guide, check out my full article:
 ## License 📄
 
 This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for more details.
-
-# License 📄
-This project is licensed under the GNU General Public License v2.0
