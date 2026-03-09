@@ -1,4 +1,4 @@
-# Key Manager 🔑 - Enterprise Audit Edition
+# Key Manager
 
 Readme: [EN](README.md)
 
@@ -12,18 +12,18 @@ Diferente de scripts de deploy comuns, esta ferramenta foi desenhada com foco em
 
 ---
 
-## ✨ Funcionalidades Avançadas
+## Funcionalidades Avançadas
 
-- 🧠 **Conexão Inteligente:** Testa a conectividade via chave antes de tentar qualquer alteração, evitando duplicidade no `authorized_keys`.
-- 🚀 **Deploy Automático (`sshpass`):** Injeta a chave pública no servidor remoto sem prompts interativos, ideal para automação e pipelines.
-- 🛡️ **Rastreabilidade Total:** Adiciona o `Hostname`, `IP de Origem` e `Timestamp` como comentário na chave pública instalada no destino.
-- 📋 **Audit Log Remoto:** Registra de forma centralizada todas as ações de deploy e acessos no arquivo `/var/log/key.audit` do servidor remoto.
-- 🧹 **Modo Force Update:** Permite limpar (purge) o `authorized_keys` e o `known_hosts` para forçar a renovação limpa de um acesso comprometido ou desatualizado.
-- 🛡️ **Proteção Anti-Lixo:** Utiliza `trap` para garantir que senhas em memória e arquivos temporários `/tmp/deploy_*.pub` sejam destruídos mesmo se o script for abortado abruptamente.
+- **Conexão Inteligente:** Testa a conectividade via chave antes de tentar qualquer alteração, evitando duplicidade no `authorized_keys`.
+- **Deploy Automático (`sshpass`):** Injeta a chave pública no servidor remoto sem prompts interativos, ideal para automação e pipelines.
+- **Rastreabilidade Total:** Adiciona o `Hostname`, `IP de Origem` e `Timestamp` como comentário na chave pública instalada no destino.
+- **Audit Log Remoto:** Registra de forma centralizada todas as ações de deploy e acessos no arquivo `/var/log/key.audit` do servidor remoto.
+- **Modo Force Update:** Permite limpar (purge) o `authorized_keys` e o `known_hosts` para forçar a renovação limpa de um acesso comprometido ou desatualizado.
+- **Proteção Anti-Lixo:** Utiliza `trap` para garantir que senhas em memória e arquivos temporários `/tmp/deploy_*.pub` sejam destruídos mesmo se o script for abortado abruptamente.
 
 ---
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 Para que o script funcione corretamente, a sua máquina local (cliente) precisa ter os seguintes pacotes instalados:
 
@@ -31,10 +31,11 @@ Para que o script funcione corretamente, a sua máquina local (cliente) precisa 
 # Em sistemas baseados em Debian/Ubuntu:
 sudo apt update && sudo apt install sshpass openssh-client curl gawk -y
 ```
+
 > Nota para o Servidor Destino:
 > Para o primeiro deploy, o servidor remoto deve permitir temporariamente a autenticação por senha (PasswordAuthentication yes no /etc/ssh/sshd_config). Após o deploy, recomenda-se desativar esta opção.
 
-## 🚀 Instalação
+## Instalação
 
 1. **Baixe o arquivo no servidor:**
 
@@ -54,7 +55,7 @@ chmod +x key_manager.sh
 ./key_manager.sh
 ```
 
-## 🛠️ Como Utilizar
+## Como Utilizar
 
 Sintaxe Básica:
 
@@ -72,7 +73,7 @@ Flag        Argumento       Descrição
 -h          Nenhum          Exibe o menu de ajuda.
 ```
 
-## 🌟 Exemplos de Uso Prático
+## Exemplos de Uso Prático
 
 1. Primeiro Acesso (Deploy Automático) Gera a chave (se não existir), adiciona o host confiável, instala a chave e loga no servidor:
 
@@ -98,7 +99,7 @@ key-manager 192.168.1.100 -p "minhasenha_secreta" -k
 key-manager 10.0.0.5 -u ubuntu -p "senha" -c "Acesso_Temporario_Dev"
 ```
 
-## 🕵️‍♂️ Sistema de Auditoria (Compliance)
+## Sistema de Auditoria (Compliance)
 
 Sempre que uma ação é executada, o script grava um log no servidor de destino em /var/log/key.audit. Isso é fundamental para manter a conformidade e saber quem acessou de onde.
 
@@ -111,21 +112,21 @@ Exemplo da saída no servidor remoto:
 
 *Além disso, executando cat ~/.ssh/authorized_keys, você verá a marca d'água exata de origem no final da string da chave pública.*
 
-## ⚠️ Aviso de Segurança
+## Aviso de Segurança
 
 Este script manipula credenciais. Nunca hardcode senhas em scripts automatizados. Para maior segurança, evite deixar senhas no histórico do terminal (em distribuições Linux padrão, iniciar um comando com um espaço em branco  ./key-manager... evita que ele seja salvo no ~/.bash_history).
 
-## ⚠️ Aviso Legal
+## Aviso Legal
 
 > [!WARNING]
 > Este software é fornecido "tal como está". Certifique-se sempre de ter permissão explícita antes de executar. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto nos dados causados ​​por esta ferramenta.
 
-## 📚 Detailed Tutorial
+## Tutorial detalhado
 
 Para um guia completo, passo a passo, confira meu artigo completo:
 
-👉 [**Easily manage your SSH keys**](https://perciocastelo.com.br/blog/easy-manager-your-ssh-keys.html)
+👉 [**Gerencie facilmente suas chaves SSH**](https://perciocastelo.com.br/blog/easy-manager-your-ssh-keys.html)
 
-## Licença 📄
+## Licença
 
 Este projeto está licenciado sob a **GNU General Public License v3.0**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
