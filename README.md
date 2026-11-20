@@ -1,130 +1,167 @@
-# Key Manager
+# SSH Key Manager
 
-Readme: [BR](README.md)
+Readme: [PT-BR](README-ptbr.md)
 
-![Shell Script](https://img.shields.io/badge/shell-script-green) ![Security Audited](https://img.shields.io/badge/security-audited-blue)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-3.1.0-green.svg)](https://github.com/sr00t3d/key_manager/releases)
+[![Shell](https://img.shields.io/badge/bash-4.0+-blue.svg)](https://www.gnu.org/software/bash/)
 
-<img src="key-manager-cover.webp" width="700">
+<img width="700" src="key-manager-cover.webp" alt="SSH Key Manager" />
 
-**Key Manager** is an advanced utility tool developed in Shell Script to simplify, automate, and audit SSH key management in Linux environments.
-
-Unlike common deployment scripts, this tool was designed with a focus on **Cybersecurity** and **Traceability**, solving the "chicken and egg problem" (needing a password to configure passwordless access) in a secure, silent, and traceable way.
-
-## Advanced Features
-
-- **Smart Connection:** Tests key-based connectivity before attempting any changes, preventing duplication in `authorized_keys`.
-- **Automatic Deploy (`sshpass`):** Injects the public key into the remote server without interactive prompts, ideal for automation and pipelines.
-- **Full Traceability:** Adds `Hostname`, `Source IP`, and `Timestamp` as a comment to the public key installed on the destination.
-- **Remote Audit Log:** Centrally records all deployment actions and access attempts in the `/var/log/key.audit` file on the remote server.
-- **Force Update Mode:** Allows purging `authorized_keys` and `known_hosts` to force a clean renewal of compromised or outdated access.
-- **Anti-Junk Protection:** Uses `trap` to ensure that passwords in memory and temporary files `/tmp/deploy_*.pub` are destroyed even if the script is abruptly aborted.
+**SSH Key Manager v3.1.0** is a Bash CLI tool that automates OpenSSH keypair generation (`ed25519` by default, or 4096-bit `rsa`), strict permission enforcement (`0700`/`0600`/`0644`), SHA256 fingerprint inspection, isolated `IdentitiesOnly=yes` verification, remote deployment via `ssh-copy-id`, and remote audit logging.
 
 ---
 
-## Prerequisites
+## Features
 
-For the script to work correctly, your local machine (client) must have the following packages installed:
+- **Modern Cryptography Default**: generates `ed25519` keys by default (with `-t rsa` for 4096-bit RSA) and automatically detects the algorithm of existing keys
+- **Strict Identity Isolation (`IdentitiesOnly=yes`)**: validates the exact target key without false positives from `ssh-agent` fallback
+- **Safe Credential Handling**: reads passwords via `SSHPASS` environment variable (`sshpass -e`) so secrets never appear in `ps aux`
+- **Safe Host Key Handling**: uses `StrictHostKeyChecking=accept-new` and optional `-k / --refresh` to prune stale `known_hosts` entries without wiping other admins' remote `authorized_keys`
+- **Permission Enforcement**: automatically enforces `0700` on `--key-dir`, `0600` on private keys, and `0644` on public keys
+- **Non-Interactive Modes**: `--check-only`, `--no-connect`, `--dry-run`, and `--no-audit` for CI/CD and fleet automation
+- **Multi-Format Reporting (`-o table|json|csv`)**: ASCII table, JSON, or CSV output including SHA256 fingerprints
 
-```bash
-# On Debian/Ubuntu-based systems:
-sudo apt update && sudo apt install sshpass openssh-client curl gawk -y
-```
+---
 
-> Note for the Destination Server:
-> For the first deployment, the remote server must temporarily allow password authentication (PasswordAuthentication yes in /etc/ssh/sshd_config). After deployment, it is recommended to disable this option.
+## Requirements
+
+- Linux/macOS with Bash 4+
+- OpenSSH client (`ssh`, `ssh-keygen`, `ssh-copy-id`)
+- `sshpass` (only required when performing initial password-based key deployment)
+
+---
 
 ## Installation
 
-1. **Download the file on the server:**
-
 ```bash
-curl -O https://raw.githubusercontent.com/sr00t3d/key_manager/refs/heads/main/key_manager.sh
-```
-
-2. **Grant execution permission:**
-
-```bash
+curl -fsSLO https://raw.githubusercontent.com/sr00t3d/key_manager/main/key_manager.sh
 chmod +x key_manager.sh
 ```
 
-3. **Run the script:**
+---
+
+## Usage
 
 ```bash
-./key_manager.sh
+./key_manager.sh <HOST> [OPTIONS]
+
+Options:
+  -u, --user USER         Remote SSH username (default: root)
+  -P, --port PORT         Remote SSH port (default: 22)
+  -t, --type TYPE         Key algorithm: ed25519 (default) or rsa (4096-bit)
+  -n, --key-name NAME     Key filename inside --key-dir (default: id_<type>)
+  --key-dir DIR           Directory storing SSH keys (default: ~/.ssh)
+  -c, --comment TEXT      Custom SSH key comment
+  -p, --password PASS     Remote password for initial deploy (prefer SSHPASS env var)
+  -k, --refresh           Refresh host entry in known_hosts before connecting
+  --check-only            Validate local key & remote pubkey auth without deploying or connecting
+  --no-connect            Exit cleanly after verification/deploy without opening interactive shell
+  --no-audit              Skip writing audit record to remote /var/log/key.audit
+  --dry-run               Preview actions without creating keys or modifying remote host
+  -o, --output FORMAT     Output format: table (default), json, csv
+  -q, --quiet             Suppress standard output (errors still go to stderr)
+  --no-color              Disable ANSI colors
+  -V, --version           Show version and exit
+  -h, --help              Show this help and exit
 ```
 
-## How to Use
-
-Basic Syntax:
+### Examples
 
 ```bash
-key-manager <SERVER_IP> [options]
-```
-```bash
-Flag        Argument        Description
--p          <password>      Remote user password for automatic deployment.
--P          <port>          Custom SSH port (Default: 22).
--u          <user>          Remote server user (Default: root).
--n          <name>          Local key filename (Default: id_rsa).
--c          <text>          Replaces automatic traceability with a custom comment.
--k          None            Force Update: Cleans old records and forces key reinstallation.
--h          None            Displays the help menu.
-```
+# Preview key generation and check flow without writing files
+./key_manager.sh server.example.com -u root -P 2222 --dry-run
 
-## Practical Usage Examples
+# Verify an existing key non-interactively (CI/CD / monitoring)
+./key_manager.sh server.example.com -u root -P 2222 -n id_ed25519 --check-only -o json
 
-1. First Access (Automatic Deploy) Generates the key (if it does not exist), adds the trusted host, installs the key, and logs on the server:
+# Deploy key via SSHPASS env var without opening an interactive shell
+SSHPASS='secret' ./key_manager.sh server.example.com -u admin --no-connect -o csv
 
-```bash
-key-manager 192.168.1.100 -p "my_secret_password"
+# Generate a custom RSA 4096 key in an isolated directory
+./key_manager.sh server.example.com --key-dir /root/.ssh-prod -t rsa -n id_prod --no-connect
 ```
 
-2. Daily Use (Quick Connection) Detects that the key already exists and immediately opens the terminal:
+---
 
-```bash
-key-manager 192.168.1.100
+## Real Output Example
+
+Captured live against an AlmaLinux 8.10 cPanel/WHM test host:
+
+### Table output (`--check-only`)
+
+```text
+$ ./key_manager.sh root.perciocastelo.com.br -u root -P 22228 -n id_rsa --check-only --no-audit --no-color
+
+SSH Key Manager v3.1.0
++------------------+--------------------------------------------------------+
+| Field            | Value                                                  |
++------------------+--------------------------------------------------------+
+| Target           | root@root.perciocastelo.com.br:22228                   |
+| Key Path         | /home/sr00t3d/.ssh/id_rsa                              |
+| Key Type         | rsa (EXISTS)                                           |
+| Fingerprint      | SHA256:SsWBqffb/sEbQQVEr9sQ/E0J2jpwar4JizroireMQek     |
+| Auth Status      | AUTHORIZED                                             |
+| Action           | VERIFIED                                               |
+| Remote Audit     | SKIPPED                                                |
+| Overall Status   | SUCCESS                                                |
+| Timestamp        | 2026-11-20T05:36:24Z                                   |
++------------------+--------------------------------------------------------+
 ```
 
-3. Update Compromised Key / Machine Replacement The -k parameter scans the old authorized_keys and installs the new key cleanly:
+### Dry-run simulation (`--dry-run`)
 
-```bash
-key-manager 192.168.1.100 -p "my_secret_password" -k
+```text
+$ ./key_manager.sh root.perciocastelo.com.br -u root -P 22228 --key-dir /tmp/km-e2e -n id_test_ed25519 --dry-run --no-color
+
+SSH Key Manager v3.1.0
++------------------+--------------------------------------------------------+
+| Field            | Value                                                  |
++------------------+--------------------------------------------------------+
+| Target           | root@root.perciocastelo.com.br:22228                   |
+| Key Path         | /tmp/km-e2e/id_test_ed25519                            |
+| Key Type         | ed25519 (WOULD_GENERATE)                               |
+| Fingerprint      | (pending generation)                                   |
+| Auth Status      | WOULD_CHECK                                            |
+| Action           | DRY_RUN                                                |
+| Remote Audit     | SKIPPED                                                |
+| Overall Status   | DRY_RUN                                                |
+| Timestamp        | 2026-11-20T05:36:24Z                                   |
++------------------+--------------------------------------------------------+
 ```
 
-4. Deploy for Specific User with Custom Name
+### JSON output (`-o json`)
 
-```bash
-key-manager 10.0.0.5 -u ubuntu -p "password" -c "Temporary_Dev_Access"
+```json
+{
+  "version": "3.1.0",
+  "status": "SUCCESS",
+  "target": "root@root.perciocastelo.com.br:22228",
+  "key_path": "/home/sr00t3d/.ssh/id_rsa",
+  "key_type": "rsa",
+  "key_state": "EXISTS",
+  "fingerprint": "SHA256:SsWBqffb/sEbQQVEr9sQ/E0J2jpwar4JizroireMQek",
+  "auth_status": "AUTHORIZED",
+  "action": "VERIFIED",
+  "audit": "SKIPPED",
+  "dry_run": false,
+  "timestamp": "2026-11-20T05:36:27Z"
+}
 ```
 
-## Audit System (Compliance)
+### CSV output (`-o csv`)
 
-Whenever an action is executed, the script writes a log on the destination server at /var/log/key.audit. This is essential to maintain compliance and to know who accessed from where.
-
-Example output on the remote server:
-
-```bash
-[28/02/2026 14:30:12] ACTION: KEY_DEPLOYED | FROM: 177.10.x.x | HOST: sr00t3d-pc
-[28/02/2026 15:45:00] ACTION: LOGIN_SUCCESS | FROM: 177.10.x.x | HOST: sr00t3d-pc
+```csv
+timestamp,target,key_path,key_type,key_state,fingerprint,auth_status,action,audit,status
+2026-11-20T05:36:30Z,"root@root.perciocastelo.com.br:22228","/home/sr00t3d/.ssh/id_rsa",rsa,EXISTS,"SHA256:SsWBqffb/sEbQQVEr9sQ/E0J2jpwar4JizroireMQek",AUTHORIZED,VERIFIED,SKIPPED,SUCCESS
 ```
 
-*Additionally, running cat ~/.ssh/authorized_keys will show the exact origin watermark at the end of the public key string.*
-
-## Security Notice
-
-This script handles credentials. Never hardcode passwords in automated scripts. For greater security, avoid leaving passwords in terminal history (on standard Linux distributions, starting a command with a blank space  ./key-manager... prevents it from being saved in ~/.bash_history).
-
-## Legal Notice
-
-> [!WARNING]
-> This software is provided "as is." Always make sure you have explicit permission before executing it. The author is not responsible for any misuse, legal consequences, or data impact caused by this tool.
-
-## Detailed Tutorial
-
-For a complete, step-by-step guide, check out my full article:
-
-👉 [**Easily manage your SSH keys**](https://perciocastelo.com.br/blog/easy-manager-your-ssh-keys.html)
+---
 
 ## License
 
-This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for more details.
+Apache-2.0. See [LICENSE](LICENSE) for details.
+
+## Author
+
+[Percio Castelo](https://perciocastelo.com.br)
